@@ -59,7 +59,6 @@ def main():
             send_discord_msg(discord_msg)
             return result, False
 
-
         # 2. 取得 formhash
         match = re.search(
             r'name="formhash" value="([^"]+)"',
@@ -72,9 +71,7 @@ def main():
             send_discord_msg(discord_msg)
             return result, False
 
-
         formhash = match.group(1)
-
 
         # 3. 執行簽到
         sign_url = (
@@ -88,14 +85,12 @@ def main():
             timeout=30
         )
 
-
         # 4. 檢查簽到狀態
         check = requests.get(
             "https://apk.tw/plugin.php?id=dsu_amupper:pper",
             headers=headers,
             timeout=30
         ).text
-
 
         already_signed = (
             "已經簽到" in check or
@@ -104,10 +99,10 @@ def main():
 
         still_has_button = 'id="my_amupper"' in check
 
-
         if already_signed:
             result = "✅ 今日已簽到"
-            discord_msg = "✅ **APK.TW 今日已簽到**"
+            # 今日已簽到通常代表之前已完成簽到，避免重複發送成功通知。
+            discord_msg = None
             success = True
 
         elif not still_has_button:
@@ -125,20 +120,16 @@ def main():
             discord_msg = "❌ **APK.TW 簽到失敗：發生未知錯誤**"
             success = False
 
-
-        send_discord_msg(discord_msg)
+        if discord_msg:
+            send_discord_msg(discord_msg)
 
         return result, success
-
 
     except Exception as e:
         result = f"❌ {str(e)}"
         discord_msg = f"❌ **APK.TW 簽到失敗：{str(e)}**"
-
         send_discord_msg(discord_msg)
-
         return result, False
-
 
 
 if __name__ == "__main__":
