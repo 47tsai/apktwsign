@@ -3,6 +3,9 @@ import re
 import sys
 import requests
 from datetime import datetime
+from zoneinfo import ZoneInfo
+
+STATE_FILE = "last_success_notification_date.txt"
 
 APK_COOKIE = os.getenv("APK_COOKIE")
 DISCORD_WEBHOOK = os.getenv("DISCORD_WEBHOOK")
@@ -11,7 +14,7 @@ DISCORD_WEBHOOK = os.getenv("DISCORD_WEBHOOK")
 def send_discord_msg(content):
     if DISCORD_WEBHOOK:
         try:
-            requests.post(
+            response = requests.post(
                 DISCORD_WEBHOOK,
                 json={
                     "username": "簽到",
@@ -29,8 +32,29 @@ def send_discord_msg(content):
                 },
                 timeout=10
             )
+            response.raise_for_status()
+            return True
         except Exception as e:
             print(f"Discord 發送失敗: {e}")
+    return False
+
+
+def send_success_once(content):
+    today = datetime.now(ZoneInfo("Asia/Taipei")).date().isoformat()
+
+    try:
+        with open(STATE_FILE, "r", encoding="utf-8") as f:
+            last_notified = f.read().strip()
+    except FileNotFoundError:
+        last_notified = ""
+
+    if last_notified == today:
+        print(f"今日已發送過成功通知（{today}），略過。")
+        return
+
+    if send_discord_msg(content):
+        with open(STATE_FILE, "w", encoding="utf-8") as f:
+            f.write(today + "\\n")
 
 
 def main():
@@ -101,8 +125,8 @@ def main():
 
         if already_signed:
             result = "✅ 今日已簽到"
-            # 今日已簽到通常代表之前已完成簽到，避免重複發送成功通知。
-            discord_msg = None
+            # 是否已通知由每日狀態檔統一判斷。
+            discord_msg = "✅ **APK.TW 簽到成功**"
             success = True
 
         elif not still_has_button:
@@ -121,7 +145,10 @@ def main():
             success = False
 
         if discord_msg:
-            send_discord_msg(discord_msg)
+            if discord_msg.startswith("✅"):
+                send_success_once(discord_msg)
+            else:
+                send_discord_msg(discord_msg)
 
         return result, success
 
