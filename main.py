@@ -54,7 +54,7 @@ def send_success_once(content):
 
     if send_discord_msg(content):
         with open(STATE_FILE, "w", encoding="utf-8") as f:
-            f.write(today + "\\n")
+            f.write(today + "\n")
 
 
 def main():
