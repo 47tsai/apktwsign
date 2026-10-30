@@ -35,6 +35,7 @@ jobs:
           APK_COOKIE: ${{ secrets.APK_COOKIE }}
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         run: |
+          set -o pipefail
           python main.py | tee result.txt
 
       - name: Update activity
