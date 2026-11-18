@@ -1,5 +1,5 @@
 # APK.TW Check-in Activity
 
-Last run: 2026-11-18 12:01:16
+Last run: 2026-11-19 00:01:16
 
-Result: ✅ 簽到成功
+Result: ❌ Cookie 已失效
